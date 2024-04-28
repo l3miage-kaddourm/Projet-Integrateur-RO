@@ -1,6 +1,5 @@
 package l3m.cyber.planner.utils;
 
-
 import l3m.cyber.planner.requests.PlannerParameter;
 import l3m.cyber.planner.responses.PlannerResult;
 
@@ -19,29 +18,34 @@ public class Planner {
         this.tournees = new ArrayList<>();
         this.longTournees = new ArrayList<>();
 
+        // Partition the deliveries among the drivers
         this.partition.partitionne(distances);
         createAndOptimizeTours();
     }
 
     private void createAndOptimizeTours() {
-        for (List<Integer> partie : partition.getParties()) {
-            ArrayList<Integer> tournee = new ArrayList<>(partie);
-            tournee.add(partie.get(0)); // Assure that each tour starts and ends at the depot
-            tournees.add(tournee);
-            longTournees.add(calculateTourLength(tournee));
+        for (List<Integer> subset : partition.getParties()) {
+            ArrayList<Integer> optimizedTour = optimizeTour(subset);
+            tournees.add(optimizedTour);
+            longTournees.add(calculateTourLength(optimizedTour));
         }
     }
 
-    private double calculateTourLength(List<Integer> tournee) {
+    // Uses a TSP approach to find the optimal visiting order
+    private ArrayList<Integer> optimizeTour(List<Integer> subset) {
+        // Dummy implementation, replace with actual TSP solution
+        ArrayList<Integer> tour = new ArrayList<>(subset);
+        tour.add(subset.get(0)); // Ensures tour starts and ends at the depot
+        return tour;
+    }
+
+    public double calculateTourLength(List<Integer> tour) {
         double length = 0.0;
-        Integer lastStop = tournee.get(0); // Start at the depot
-        for (Integer stop : tournee) {
-            if (!stop.equals(lastStop)) {
-                length += distances[lastStop][stop];
-                lastStop = stop;
-            }
+        int lastIndex = tour.size() - 1;
+        for (int i = 0; i < lastIndex; i++) {
+            length += distances[tour.get(i)][tour.get(i + 1)];
         }
-        length += distances[lastStop][tournee.get(0)]; // Return to the depot
+        length += distances[tour.get(lastIndex)][tour.get(0)]; // Complete the loop back to the depot
         return length;
     }
 
