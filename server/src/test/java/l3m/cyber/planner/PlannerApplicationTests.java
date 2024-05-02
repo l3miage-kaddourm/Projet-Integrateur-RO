@@ -1,20 +1,18 @@
 package l3m.cyber.planner;
 
 import l3m.cyber.planner.utils.Graphe;
-import l3m.cyber.planner.utils.Partition;
 import l3m.cyber.planner.utils.PartitionKCentre;
-import l3m.cyber.planner.requests.PlannerParameter;
 import l3m.cyber.planner.utils.Planner;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
-import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlannerApplicationTests {
 
-    
-    @Test void testKruskalTSP() {
+    @Test
+    void testKruskalTSP() {
         // Matrice de distances pour un graphe complet
         Double[][] distances = {
             {0.0, 2.0, 3.0, 1.0},
@@ -32,18 +30,17 @@ public class PlannerApplicationTests {
         }
 
         // Application de Kruskal pour obtenir l'arbre couvrant minimal
-        Graphe mst = graphe.kruskalMST();
+        Graphe mst = graphe.kruskal();
 
-        // Création d'une instance de PartitionKCentre
-        Partition partition = new PartitionKCentre(distances.length, 2, 0);
-        partition.partitionne(distances);
+        // Utilisation du Planner avec la matrice de distances, k et le début
+        Planner planner = new Planner(distances, 2, 0);
 
-        PlannerParameter params = new PlannerParameter(distances, 2, 0);
-        Planner planner = new Planner(params, partition);
+        // Partition et optimisation des tournées
+        planner.divise();
 
         // On simule le TSP en partant du premier sommet de l'MST
-        List<Integer> tournee = mst.tsp(0);
-        double longueurTournee = planner.calculateTourLength(tournee); // Utiliser Graphe pour calculer la longueur
+        ArrayList<Integer> tournee = mst.tsp(0);
+        double longueurTournee = planner.calculeLongTournees(tournee); // Utiliser Graphe pour calculer la longueur
 
         // Affichage des résultats
         System.out.println("Arbre couvrant minimal (MST) via Kruskal: ");
@@ -56,5 +53,4 @@ public class PlannerApplicationTests {
         assertTrue(tournee.size() > 1); // Doit contenir au moins 2 sommets si connecté
         assertTrue(longueurTournee > 0); // La longueur doit être positive
     }
-
 }

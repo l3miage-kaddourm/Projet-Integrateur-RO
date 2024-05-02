@@ -325,31 +325,33 @@ public class Graphe implements Cloneable {
         this.nomSommets = nomSommets;
     }
     
-    public Graphe kruskalMST() {
-        // Récupérer la liste de toutes les arêtes du graphe
-        List<Triplet> allEdges = listeAretes();
-        
-        // Trier les arêtes par poids croissant
-        Collections.sort(allEdges, (a, b) -> Double.compare(a.getC3(), b.getC3()));
-    
-        // Initialiser la structure Union-Find pour gérer les composantes connexes
-        UnionFind unionFind = new UnionFind(nbSommets);
-    
-        // Créer un graphe pour l'arbre couvrant minimal
-        Graphe mst = new Graphe(nbSommets);
-    
-        // Ajouter des arêtes au MST sans former de cycles
-        for (Triplet edge : allEdges) {
-            int root1 = unionFind.find(edge.getC1());
-            int root2 = unionFind.find(edge.getC2());
-            if (root1 != root2) {
-                mst.ajouterArete(edge.getC1(), edge.getC2(), edge.getC3());
-                unionFind.union(root1, root2);
+    public Graphe kruskal() {
+        // Liste des arêtes triées par poids croissant
+        List<Triplet> edges = aretesTriees(true); // Utilise la méthode aretesTriees pour trier les arêtes
+
+        // Créer une structure UnionFind pour gérer les composantes connexes
+        UnionFind uf = new UnionFind(nbSommets);
+
+        // Créer un nouveau graphe pour stocker l'arbre couvrant minimal
+        Graphe arbreCouvrantMin = new Graphe(nbSommets);
+
+        // Parcourir les arêtes triées
+        for (Triplet edge : edges) {
+            int u = edge.getC1();
+            int v = edge.getC2();
+
+            // Vérifier si l'ajout de cette arête crée un cycle
+            if (uf.find(u) != uf.find(v)) {
+                // Pas de cycle, ajouter l'arête à l'arbre couvrant
+                arbreCouvrantMin.ajouterArete(u, v, edge.getC3());
+                uf.union(u, v); // Fusionner les composantes connexes
             }
         }
-    
-        return mst;
+
+        return arbreCouvrantMin;
     }
+
+
     
     
 }

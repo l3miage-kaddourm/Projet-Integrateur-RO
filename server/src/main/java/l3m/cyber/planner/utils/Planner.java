@@ -5,51 +5,85 @@ import l3m.cyber.planner.responses.PlannerResult;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Arrays;
 
 public class Planner {
     private Double[][] distances;
+    private int k;
+    private int debut;
     private Partition partition;
     private ArrayList<ArrayList<Integer>> tournees;
     private ArrayList<Double> longTournees;
 
-    public Planner(PlannerParameter param, Partition partition) {
-        this.distances = param.matrix();
-        this.partition = partition;
+    public Planner(Double[][] distances, int k, int debut) {
+        this.distances = distances;
+        this.k = k;
+        this.debut = debut;
+        this.partition = new PartitionKCentre(distances.length, k, debut);
         this.tournees = new ArrayList<>();
         this.longTournees = new ArrayList<>();
-
-        // Partition the deliveries among the drivers
-        this.partition.partitionne(distances);
-        createAndOptimizeTours();
+        divise();
     }
 
-    private void createAndOptimizeTours() {
+    public void divise() {
+        partition.partitionne(distances);
+        calculeTournees();
+    }
+
+    public void calculeTournees() {
         for (List<Integer> subset : partition.getParties()) {
-            ArrayList<Integer> optimizedTour = optimizeTour(subset);
+            ArrayList<Integer> optimizedTour = calculeUneTournee(new ArrayList<>(subset));
             tournees.add(optimizedTour);
-            longTournees.add(calculateTourLength(optimizedTour));
+            longTournees.add(calculeLongTournees(optimizedTour));
         }
     }
 
-    // Uses a TSP approach to find the optimal visiting order
-    private ArrayList<Integer> optimizeTour(List<Integer> subset) {
-        // Dummy implementation, replace with actual TSP solution
-        ArrayList<Integer> tour = new ArrayList<>(subset);
-        tour.add(subset.get(0)); // Ensures tour starts and ends at the depot
-        return tour;
+    public ArrayList<Integer> calculeUneTournee(ArrayList<Integer> subset) {
+        Graphe graphe = new Graphe(getSousMatrice(subset), subset);
+        Graphe mst = graphe.kruskal(); // Utilise Kruskal pour obtenir l'arbre couvrant minimal
+        return mst.tsp(debut); // Utilise l'algorithme TSP pour optimiser la tournée à partir du MST
     }
 
-    public double calculateTourLength(List<Integer> tour) {
+    public Double[][] getSousMatrice(List<Integer> selec) {
+        Double[][] sousMatrice = new Double[selec.size()][selec.size()];
+        for (int i = 0; i < selec.size(); i++) {
+            for (int j = 0; j < selec.size(); j++) {
+                sousMatrice[i][j] = distances[selec.get(i)][selec.get(j)];
+            }
+        }
+        return sousMatrice;
+    }
+
+    public double calculeLongTournees(ArrayList<Integer> tour) {
         double length = 0.0;
-        int lastIndex = tour.size() - 1;
-        for (int i = 0; i < lastIndex; i++) {
+        for (int i = 0; i < tour.size() - 1; i++) {
             length += distances[tour.get(i)][tour.get(i + 1)];
         }
-        length += distances[tour.get(lastIndex)][tour.get(0)]; // Complete the loop back to the depot
+        length += distances[tour.get(tour.size() - 1)][tour.get(0)];
         return length;
+    }
+
+    public List<ArrayList<Integer>> getTournees() {
+        return tournees;
+    }
+
+    public List<Double> getLongTournees() {
+        return longTournees;
     }
 
     public PlannerResult result() {
         return new PlannerResult(tournees, longTournees);
+    }
+
+    @Override
+    public String toString() {
+        return "Planner{" +
+                "distances=" + Arrays.deepToString(distances) +
+                ", k=" + k +
+                ", debut=" + debut +
+                ", partition=" + partition +
+                ", tournees=" + tournees +
+                ", longTournees=" + longTournees +
+                '}';
     }
 }
