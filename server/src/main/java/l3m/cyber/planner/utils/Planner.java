@@ -2,9 +2,6 @@ package l3m.cyber.planner.utils;
 
 import l3m.cyber.planner.requests.PlannerParameter;
 import l3m.cyber.planner.responses.PlannerResult;
-import l3m.cyber.planner.utils.PartitionKCentre;
-import l3m.cyber.planner.utils.Partition;
-import l3m.cyber.planner.utils.Graphe;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +22,6 @@ public class Planner {
         this.partition = new PartitionKCentre(distances.length, k);
         this.tournees = new ArrayList<>();
         this.longTournees = new ArrayList<>();
-        divise();
     }
 
     public void divise() {
