@@ -2,14 +2,38 @@ package l3m.cyber.planner;
 
 import l3m.cyber.planner.utils.Graphe;
 import l3m.cyber.planner.utils.PartitionKCentre;
+
 import l3m.cyber.planner.utils.Planner;
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
+import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PlannerApplicationTests {
+
+    @Test
+    public void testPartitionne() {
+        Double[][] distances = {
+                { 0.0, 2.0, 3.0, 1.0 },
+                { 2.0, 0.0, 4.0, 5.0 },
+                { 3.0, 4.0, 0.0, 8.0 },
+                { 1.0, 5.0, 8.0, 0.0 }
+        };
+
+        PartitionKCentre partitionKCentre = new PartitionKCentre(distances.length, 2); // Instanciation manuelle
+
+        partitionKCentre.partitionne(distances);
+
+        // Vérifier les partitions attendues
+        ArrayList<ArrayList<Integer>> expectedPartitions = new ArrayList<>();
+        expectedPartitions.add(new ArrayList<>(Arrays.asList(0, 1, 3)));
+        expectedPartitions.add(new ArrayList<>(Arrays.asList(0, 2)));
+
+        assertEquals(expectedPartitions, partitionKCentre.getParties(), "Les partitions ne sont pas correctes");
+    }
 
     @Test
     void testKruskalTSP() {
