@@ -7,58 +7,85 @@ import java.util.List;
 
 public class Graphe implements Cloneable {
 
-    private int nbSommets;
-    private int[][] adj; // Matrice d'adjacence
+    private int nbSommets; // Nombre de sommets dans le graphe
+    private Integer[][] adj; // Matrice d'adjacence
     private Double[][] poidsA; // Matrice des poids des arêtes
-    private ArrayList<Integer> nomSommets; // Liste des noms des sommets
+    private ArrayList<Integer> nomSommets;// Liste des noms des sommets
 
-    // Constructeurs 
+    // Constructeurs
+    // Crée un graphe avec n sommets et aucune arête
+    public Graphe(int n) {
+        this.nbSommets = n;
+        this.adj = new Integer[n][n];
+        this.poidsA = new Double[n][n];
+        this.nomSommets = Auxiliaire.integerList(n);
+    }
 
-    public Graphe(int[][] adj, ArrayList<Integer> nomSommets) {
-        this.nbSommets = nomSommets.size();
-        this.adj = adj;
-        this.poidsA = new Double[nbSommets][nbSommets];
-        this.nomSommets = nomSommets;
-        // Initialisez les poids avec des valeurs par défaut (1.0) où l'adjacence est 1
-        for (int i = 0; i < nbSommets; i++) {
-            for (int j = 0; j < nbSommets; j++) {
-                if (adj[i][j] == 1) {
-                    poidsA[i][j] = 1.0;
-                }
-            }
+    // Crée un graphe avec une matrice d'adjacence et une liste de noms de sommets
+    public Graphe(Integer[][] adj, ArrayList<Integer> nomSommets) {
+        if (Auxiliaire.estCarreeSym(adj)) {
+            this.nbSommets = nomSommets.size();
+            this.adj = adj;
+            this.poidsA = null;
+            this.nomSommets = nomSommets;
+        } else {
+            // Initialiser un graphe par défaut si la matrice n'est pas carrée et symétrique
+            this.nbSommets = 0;
+            this.adj = new Integer[0][0];
+            this.poidsA = null;
+            this.nomSommets = new ArrayList<>();
         }
     }
 
-    // Constructeur avec matrice des poids et liste des noms des sommets
+    // Crée un graphe avec une matrice de poids et une liste de noms de sommets
     public Graphe(Double[][] poidsA, ArrayList<Integer> nomSommets) {
-        this.nbSommets = nomSommets.size();
-        this.adj = new int[nbSommets][nbSommets];
-        this.poidsA = poidsA;
-        this.nomSommets = nomSommets;
-        // Construisez la matrice d'adjacence en fonction des poids
-        for (int i = 0; i < nbSommets; i++) {
-            for (int j = 0; j < nbSommets; j++) {
-                if (poidsA[i][j] != null && poidsA[i][j] > 0) {
-                    adj[i][j] = 1;
+        if (Auxiliaire.estCarreeSym(poidsA)) {
+            this.nbSommets = nomSommets.size();
+            this.poidsA = poidsA;
+            this.nomSommets = nomSommets;
+            this.adj = new Integer[nbSommets][nbSommets];
+            for (int i = 0; i < nbSommets; i++) {
+                for (int j = 0; j < nbSommets; j++) {
+                    this.adj[i][j] = (poidsA[i][j] != null && poidsA[i][j] > 0) ? 1 : 0;
                 }
             }
+        } else {
+            // Initialiser un graphe par défaut si la matrice n'est pas carrée et symétrique
+            this.nbSommets = 0;
+            this.poidsA = null;
+            this.adj = new Integer[0][0];
+            this.nomSommets = new ArrayList<>();
         }
     }
 
-
-    // Constructeur avec matrice des poids sans liste des noms des sommets
-    public Graphe(Double[][] poidsA, int n) {
-        this(poidsA, Auxiliaire.integerList(n));
+    // Crée un graphe avec une matrice d'adjacence et initialise les noms des
+    // sommets de 0 à n-1
+    public Graphe(ArrayList<Integer> nomSommets) {
+        this.nomSommets = nomSommets;
+        this.nbSommets = nomSommets.size();
+        this.adj = new Integer[nbSommets][nbSommets];
+        this.nomSommets = Auxiliaire.integerList(nbSommets);
     }
-    
-    // Constructeur avec matrice d'adjacence sans liste des noms des sommets
-    public Graphe(int nbSommets) {
-        this.nbSommets = nbSommets;
-        adj = new int[nbSommets][nbSommets];
-        poidsA = new Double[nbSommets][nbSommets];
-        nomSommets = new ArrayList<>();
-        for (int i = 0; i < nbSommets; i++) {
-            nomSommets.add(i);
+
+    // Crée un graphe avec une matrice de poids, initialise les noms des sommets de
+    // 0 à n-1 et construit la matrice d'adjacence
+    public Graphe(Double[][] poidsA, int n) {
+        if (!Auxiliaire.estCarreeSym(poidsA)) {
+            this.nbSommets = n;
+            this.poidsA = poidsA;
+            this.nomSommets = Auxiliaire.integerList(n);
+            this.adj = new Integer[n][n];
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    this.adj[i][j] = (poidsA[i][j] != null && poidsA[i][j] > 0) ? 1 : 0;
+                }
+            }
+        } else {
+            // Initialiser un graphe par défaut si la matrice n'est pas carrée et symétrique
+            this.nbSommets = 0;
+            this.poidsA = new Double[0][0];
+            this.adj = new Integer[0][0];
+            this.nomSommets = new ArrayList<>();
         }
     }
 
@@ -73,28 +100,29 @@ public class Graphe implements Cloneable {
         }
     }
 
-    // methode pour retourner une liste de tous les triplets représentant les arêtes du graphe.
+    // methode pour retourner une liste de tous les triplets représentant les arêtes
+    // du graphe.
     public List<Triplet> listeAretes() {
-        List<Triplet> aretes = new ArrayList<>();
+        List<Triplet> liste = new ArrayList<>();
         for (int i = 0; i < nbSommets; i++) {
             for (int j = i + 1; j < nbSommets; j++) {
                 if (adj[i][j] == 1) {
-                    aretes.add(new Triplet(i, j, poidsA[i][j]));
+                    liste.add(new Triplet(i, j, poidsA[i][j]));
                 }
             }
         }
-        return aretes;
+        return liste;
     }
-    
+
     // méthode pour retourner une liste des arêtes triées par poids.
     public List<Triplet> aretesTriees(boolean croissant) {
-        List<Triplet> aretes = listeAretes();
+        List<Triplet> liste = listeAretes();
         if (croissant) {
-            Collections.sort(aretes);
+            Collections.sort(liste);
         } else {
-            Collections.sort(aretes, Collections.reverseOrder());
+            Collections.sort(liste, Collections.reverseOrder());
         }
-        return aretes;
+        return liste;
     }
 
     // Méthode pour vérifier si le graphe est connexe
@@ -102,62 +130,53 @@ public class Graphe implements Cloneable {
         ArrayList<Integer> resultat = parcoursLargeur(0); // On commence par le sommet 0
         return resultat.size() == nbSommets; // Si tous les sommets sont atteints, le graphe est connexe
     }
-    
-    // Méthode pour obtenir les voisins d'un sommet
-    public List<Integer> voisins(int i) {
-        List<Integer> voisins = new ArrayList<>();
-        for (int j = 0; j < nbSommets; j++) {
-            if (adj[i][j] == 1) { // Si une arête existe entre i et j
-                voisins.add(j);
-            }
-        }
-        return voisins;
+
+    public boolean voisins(int i, int j) {
+        return adj[i][j] == 1;
     }
-    
-     // Ajouter une arête non pondérée
-     public void ajouterArete(int i, int j) {
-        // Assurez-vous que i et j sont dans les limites de la matrice
-        adj[i][j] = 1;
-        adj[j][i] = 1; // Le graphe est non-orienté, donc symétrique
+
+    // Ajouter une arête non pondérée
+    public void ajouterArete(int i, int j) {
+        if (i >= 0 && i <= nbSommets && j >= 0 && j <= nbSommets) {
+            this.adj[i][j] = 1;
+            this.adj[j][i] = 1;
+        }
     }
 
     // Méthode pour ajouter une arête avec un poids
     public void ajouterArete(int i, int j, double poids) {
-        if (i < 0 || i >= nbSommets || j < 0 || j >= nbSommets || i == j) {
-            throw new IllegalArgumentException("Invalid node index");
+        if (i >= 0 && i < nbSommets && j >= 0 && j < nbSommets && i != j) {
+            adj[i][j] = 1;
+            adj[j][i] = 1;
+            poidsA[i][j] = poids;
+            poidsA[j][i] = poids;
         }
-        adj[i][j] = 1;
-        adj[j][i] = 1;
-        poidsA[i][j] = poids;
-        poidsA[j][i] = poids;
     }
-    
-    // Méthode pour retirer une arête
+
     public void retirerArete(int i, int j) {
-        if (i < 0 || i >= nbSommets || j < 0 || j >= nbSommets) {
-            throw new IllegalArgumentException("Invalid node index");
+        if (i >= 0 && i < nbSommets && j >= 0 && j < nbSommets) {
+            adj[i][j] = 0;
+            adj[j][i] = 0;
+            if (poidsA != null) {
+                poidsA[i][j] = 0.0;
+                poidsA[j][i] = 0.0;
+            }
+        } else {
+            // Ignorer silencieusement les demandes invalides
         }
-        adj[i][j] = 0; 
-        adj[j][i] = 0;
-        poidsA[i][j] = null;
-        poidsA[j][i] = null;
     }
 
-    
     // Méthode pour ajuster le poids d'une arête existante
-    public void ajusterPoids(int i, int j, double poids) {
-        if (i < 0 || i >= nbSommets || j < 0 || j >= nbSommets) {
-            throw new IllegalArgumentException("Indices de sommets invalides");
+    public void ajusterPoids(int i, int j) {
+        if (adj[i][j] == 1 && poidsA[i][j] != null) {
+            poidsA[i][j] *= 1.1; // en supposant qu'on veut augmenter le poids de 10%
+            poidsA[j][i] *= 1.1; // en supposant qu'on veut augmenter le poids de 10%
         }
-        if (adj[i][j] == 0) {
-            throw new IllegalArgumentException("Aucune arête existante entre les sommets spécifiés");
-        }
-        poidsA[i][j] = poids;
-        poidsA[j][i] = poids; 
+
     }
 
-     // Parcours en largeur 
-     public ArrayList<Integer> parcoursLargeur(int debut) {
+    // Parcours en largeur
+    public ArrayList<Integer> parcoursLargeur(int debut) {
         // Initialisation
         boolean[] visite = new boolean[this.nbSommets];
         ArrayList<Integer> resultat = new ArrayList<>();
@@ -169,7 +188,6 @@ public class Graphe implements Cloneable {
         while (!queue.isEmpty()) {
             int sommet = queue.remove(0);
             resultat.add(sommet);
-
             for (int i = 0; i < this.nbSommets; i++) {
                 if (this.adj[sommet][i] == 1 && !visite[i]) {
                     visite[i] = true;
@@ -180,105 +198,78 @@ public class Graphe implements Cloneable {
         return resultat;
     }
 
-    // Parcours en profondeur 
     public ArrayList<Integer> parcoursProfondeur(int debut) {
-        boolean[] visite = new boolean[this.nbSommets];
-        ArrayList<Integer> resultat = new ArrayList<>();
-        dfs(debut, visite, resultat);
-        return resultat;
-    }
-
-    // Méthode récursive pour le parcours en profondeur
-    private void dfs(int sommet, boolean[] visite, ArrayList<Integer> resultat) {
-        visite[sommet] = true;
-        resultat.add(sommet);
-
-        for (int i = 0; i < this.nbSommets; i++) {
-            if (this.adj[sommet][i] == 1 && !visite[i]) {
-                dfs(i, visite, resultat);
+        ArrayList<Integer> visiteProfondeur = new ArrayList<>();
+        boolean[] visite = new boolean[nbSommets];
+        ArrayList<Integer> pile = new ArrayList<>();
+        pile.add(debut);
+        while (!pile.isEmpty()) {
+            int sommet = pile.remove(pile.size() - 1);
+            if ((!visite[sommet])) {
+                visiteProfondeur.add(sommet);
+                visite[sommet] = true;
+                for (int voisin = 0; voisin < nbSommets; voisin++) {
+                    if (voisins(sommet, voisin) && !visite[voisin]) {
+                        pile.add(voisin);
+                    }
+                }
             }
+
         }
+        return visiteProfondeur;
     }
 
-    
     // Algorithme de Kruskal pour trouver l'arbre couvrant minimal
     public Graphe kruskalInverse() {
-        // Utiliser une liste pour stocker tous les triplets (arêtes avec poids)
-        List<Triplet> edges = new ArrayList<>();
-        for (int i = 0; i < nbSommets; i++) {
-            for (int j = i + 1; j < nbSommets; j++) {
-                if (adj[i][j] != 0 && poidsA[i][j] != null) {
-                    edges.add(new Triplet(i, j, poidsA[i][j]));
-                }
+        Graphe T = (Graphe) this.clone();
+        List<Triplet> aretes = T.aretesTriees(true);
+        int sommet1 = 0;
+        int sommet2 = 0;
+        double poids = 0;
+        for (Triplet arete : aretes) {
+            sommet1 = arete.getC1();
+            sommet2 = arete.getC2();
+            poids = arete.getPoids();
+            T.retirerArete(sommet1, sommet2);
+            if (!T.estConnexe()) {
+                T.ajouterArete(sommet1, sommet2, poids);
             }
         }
-        // Trier les arêtes par poids décroissant
-        edges.sort((a, b) -> Double.compare(b.getC3(), a.getC3()));
-
-    
-        // Créer une forêt d'arbres (union-find)
-        UnionFind uf = new UnionFind(nbSommets);
-        // Construire l'arbre couvrant maximal
-        Graphe arbreCouvrantMax = new Graphe(nbSommets);
-        for (Triplet edge : edges) {
-            int i = edge.getC1();
-            int j = edge.getC2();
-            if (uf.find(i) != uf.find(j)) {
-                arbreCouvrantMax.ajouterArete(i, j, edge.getC3());
-                uf.union(i, j);
-            }
-        }
-        return arbreCouvrantMax;
+        return T;
     }
-    
-    // Algorithme de Dijkstra pour trouver le plus court chemin
+
+    // tsp pour avoir un cycle hamiltonien a la fin
     public ArrayList<Integer> tsp(int debut) {
-        boolean[] visite = new boolean[nbSommets];
-        ArrayList<Integer> cycle = new ArrayList<>();
-        cycle.add(debut);
-        visite[debut] = true;
-    
-        Integer courant = debut;
-        // Continuer jusqu'à visiter chaque sommet une fois
-        while (true) {
-            int voisinLePlusProche = -1;
-            double poidsLePlusFaible = Double.MAX_VALUE;
-            // Trouver le voisin non visité le plus proche
-            for (int j = 0; j < nbSommets; j++) {
-                if (!visite[j] && poidsA[courant][j] != null && poidsA[courant][j] < poidsLePlusFaible) {
-                    poidsLePlusFaible = poidsA[courant][j];
-                    voisinLePlusProche = j;
-                }
+        Graphe T = this.kruskalInverse();
+        ArrayList<Integer> parcours = T.parcoursProfondeur(debut);
+        ArrayList<Integer> res = new ArrayList<>();
+        for (int sommet : parcours) {
+            if (!res.contains(sommet)) {
+                res.add(sommet);
             }
-            if (voisinLePlusProche == -1) {
-                break; // Tous les sommets ont été visités
-            }
-            cycle.add(voisinLePlusProche);
-            visite[voisinLePlusProche] = true;
-            courant = voisinLePlusProche;
         }
-        cycle.add(debut); // Fermer le cycle
-        return cycle;
+        return res;
     }
-    
 
-    // Méthode clone pour créer une copie du graphe
     @Override
-    protected Object clone() throws CloneNotSupportedException {
-        Graphe clone = (Graphe) super.clone();
-        clone.adj = new int[nbSommets][];
-        clone.poidsA = new Double[nbSommets][];
-        for (int i = 0; i < nbSommets; i++) {
-            clone.adj[i] = adj[i].clone();
-            clone.poidsA[i] = poidsA[i].clone();
+    protected Object clone() {
+        try {
+            Graphe clone = (Graphe) super.clone();
+            clone.adj = new Integer[nbSommets][];
+            clone.poidsA = new Double[nbSommets][];
+            for (int i = 0; i < nbSommets; i++) {
+                clone.adj[i] = adj[i].clone();
+                clone.poidsA[i] = poidsA[i].clone();
+            }
+            clone.nomSommets = new ArrayList<>(nomSommets);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
-        clone.nomSommets = new ArrayList<>(nomSommets);
-        return clone;
     }
-    
 
-
-    // Méthode toString pour obtenir une représentation en chaîne de caractères du graphe
+    // Méthode toString pour obtenir une représentation en chaîne de caractères du
+    // graphe
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
@@ -290,13 +281,13 @@ public class Graphe implements Cloneable {
         sb.append('}');
         return sb.toString();
     }
-    
-     // Getters
-     public int getNbSommets() {
+
+    // Getters
+    public int getNbSommets() {
         return nbSommets;
     }
 
-    public int[][] getAdj() {
+    public Integer[][] getAdj() {
         return adj;
     }
 
@@ -313,7 +304,7 @@ public class Graphe implements Cloneable {
         this.nbSommets = nbSommets;
     }
 
-    public void setAdj(int[][] adj) {
+    public void setAdj(Integer[][] adj) {
         this.adj = adj;
     }
 
@@ -324,7 +315,7 @@ public class Graphe implements Cloneable {
     public void setNomSommets(ArrayList<Integer> nomSommets) {
         this.nomSommets = nomSommets;
     }
-    
+
     public Graphe kruskal() {
         // Liste des arêtes triées par poids croissant
         List<Triplet> edges = aretesTriees(true); // Utilise la méthode aretesTriees pour trier les arêtes
@@ -343,7 +334,7 @@ public class Graphe implements Cloneable {
             // Vérifier si l'ajout de cette arête crée un cycle
             if (uf.find(u) != uf.find(v)) {
                 // Pas de cycle, ajouter l'arête à l'arbre couvrant
-                arbreCouvrantMin.ajouterArete(u, v, edge.getC3());
+                arbreCouvrantMin.ajouterArete(u, v, edge.getPoids());
                 uf.union(u, v); // Fusionner les composantes connexes
             }
         }
@@ -351,7 +342,4 @@ public class Graphe implements Cloneable {
         return arbreCouvrantMin;
     }
 
-
-    
-    
 }

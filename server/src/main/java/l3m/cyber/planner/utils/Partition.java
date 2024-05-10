@@ -57,7 +57,7 @@ public abstract class Partition {
                 + elems + ", parties = " + parties + " }";
     }
 
-    public List<Integer> getPartie(int i) {
+    public ArrayList<Integer> getPartie(int i) {
         return parties.get(i);
     }
 }

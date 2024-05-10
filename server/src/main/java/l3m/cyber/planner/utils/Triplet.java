@@ -24,7 +24,7 @@ public class Triplet implements Comparable<Triplet> {
         return c2;
     }
 
-    public double getC3() {
+    public double getPoids() {
         return c3;
     }
 

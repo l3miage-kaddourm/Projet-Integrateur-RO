@@ -11,62 +11,77 @@ public class Planner {
     private Double[][] distances;
     private int k;
     private int debut;
-    private Partition partition;
+    private Partition p;
     private ArrayList<ArrayList<Integer>> tournees;
     private ArrayList<Double> longTournees;
+
+    public Planner(PlannerParameter params) {
+        this(params.matrix(), params.k(), params.start());
+    }
 
     public Planner(Double[][] distances, int k, int debut) {
         this.distances = distances;
         this.k = k;
         this.debut = debut;
-        this.partition = new PartitionKCentre(distances.length, k);
-        this.tournees = new ArrayList<>();
-        this.longTournees = new ArrayList<>();
+    }
+
+    public Planner() {
+        this(null, 0, 0);
     }
 
     public void divise() {
-        partition.partitionne(distances);
-        calculeTournees();
+        this.p = new PartitionKCentre(distances.length, k);
+        p.partitionne(distances);
+        tournees = new ArrayList<ArrayList<Integer>>();
+        for (int i = 0; i < k; i++) {
+            tournees.add(p.getPartie(i));
+        }
+        calculeLongTournees();
+
     }
 
-    public void calculeTournees() {
-        for (List<Integer> subset : partition.getParties()) {
-            ArrayList<Integer> optimizedTour = calculeUneTournee(new ArrayList<>(subset));
-            tournees.add(optimizedTour);
-            longTournees.add(calculeLongTournees(optimizedTour));
+    public void calculeTournee() {
+        for (int i = 0; i < tournees.size(); i++) {
+            ArrayList<Integer> listElem = tournees.get(i);
+            ArrayList<Integer> tournee = calculeUneTournee(listElem);
+            tournees.set(i, tournee);
         }
     }
 
     public ArrayList<Integer> calculeUneTournee(ArrayList<Integer> subset) {
-        Graphe graphe = new Graphe(getSousMatrice(subset), subset);
-        Graphe mst = graphe.kruskal(); // Utilise Kruskal pour obtenir l'arbre couvrant minimal
+        Graphe mst = new Graphe(getSousMatrice(subset), subset);
         return mst.tsp(debut); // Utilise l'algorithme TSP pour optimiser la tournée à partir du MST
     }
 
     public Double[][] getSousMatrice(List<Integer> selec) {
-        Double[][] sousMatrice = new Double[selec.size()][selec.size()];
-        for (int i = 0; i < selec.size(); i++) {
-            for (int j = 0; j < selec.size(); j++) {
+        int n = selec.size();
+        Double[][] sousMatrice = new Double[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 sousMatrice[i][j] = distances[selec.get(i)][selec.get(j)];
             }
         }
         return sousMatrice;
     }
 
-    public double calculeLongTournees(ArrayList<Integer> tour) {
-        double length = 0.0;
-        for (int i = 0; i < tour.size() - 1; i++) {
-            length += distances[tour.get(i)][tour.get(i + 1)];
+    public void calculeLongTournees() {
+        longTournees = new ArrayList<Double>();
+        for (ArrayList<Integer> listElem : tournees) {
+            Double longueur = 0.0;
+            for (int j = 0; j < listElem.size() - 1; j++) {
+                longueur += distances[listElem.get(j)][listElem.get(j + 1)];
+            }
+            longueur += distances[listElem.getLast()][listElem.getFirst()];
+            longTournees.add(longueur);
         }
-        length += distances[tour.get(tour.size() - 1)][tour.get(0)];
-        return length;
+
     }
 
-    public List<ArrayList<Integer>> getTournees() {
+    public ArrayList<ArrayList<Integer>> getTournees() {
         return tournees;
     }
 
-    public List<Double> getLongTournees() {
+    public ArrayList<Double> getLongTournees() {
         return longTournees;
     }
 
@@ -80,9 +95,10 @@ public class Planner {
                 "distances=" + Arrays.deepToString(distances) +
                 ", k=" + k +
                 ", debut=" + debut +
-                ", partition=" + partition +
+                ", partition=" + p +
                 ", tournees=" + tournees +
                 ", longTournees=" + longTournees +
                 '}';
     }
+
 }
