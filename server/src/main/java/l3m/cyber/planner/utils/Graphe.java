@@ -1,25 +1,18 @@
 package l3m.cyber.planner.utils;
 
-import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 public class Graphe implements Cloneable {
-
     private int nbSommets; // Nombre de sommets dans le graphe
     private Integer[][] adj; // Matrice d'adjacence
     private Double[][] poidsA; // Matrice des poids des arêtes
     private ArrayList<Integer> nomSommets;// Liste des noms des sommets
 
     // Constructeurs
-    // Crée un graphe avec n sommets et aucune arête
-    public Graphe(int n) {
-        this.nbSommets = n;
-        this.adj = new Integer[n][n];
-        this.poidsA = new Double[n][n];
-        this.nomSommets = Auxiliaire.integerList(n);
-    }
 
     // Crée un graphe avec une matrice d'adjacence et une liste de noms de sommets
     public Graphe(Integer[][] adj, ArrayList<Integer> nomSommets) {
@@ -67,6 +60,14 @@ public class Graphe implements Cloneable {
         this.nomSommets = Auxiliaire.integerList(nbSommets);
     }
 
+    // Crée un graphe avec n sommets et aucune arête
+    public Graphe(int n) {
+            this.nbSommets = n;
+            this.adj = new Integer[n][n];
+            this.poidsA = new Double[n][n];
+            this.nomSommets = Auxiliaire.integerList(n);
+     }
+
     // Crée un graphe avec une matrice de poids, initialise les noms des sommets de
     // 0 à n-1 et construit la matrice d'adjacence
     public Graphe(Double[][] poidsA, int n) {
@@ -89,93 +90,61 @@ public class Graphe implements Cloneable {
         }
     }
 
-    // Méthode pour pondérer les arêtes avec un poids par défaut
-    public void pondereAretes() {
-        for (int i = 0; i < this.nbSommets; i++) {
-            for (int j = 0; j < this.nbSommets; j++) {
-                if (this.adj[i][j] == 1 && this.poidsA[i][j] == null) {
-                    this.poidsA[i][j] = 1.0; // Poids par défaut
-                }
+    @Override
+    protected Object clone() {
+        try {
+            Graphe clone = (Graphe) super.clone();
+            clone.adj = new Integer[nbSommets][];
+            clone.poidsA = new Double[nbSommets][];
+            for (int i = 0; i < nbSommets; i++) {
+                clone.adj[i] = adj[i].clone();
+                clone.poidsA[i] = poidsA[i].clone();
             }
+            clone.nomSommets = new ArrayList<>(nomSommets);
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
 
-    // methode pour retourner une liste de tous les triplets représentant les arêtes
-    // du graphe.
-    public List<Triplet> listeAretes() {
-        List<Triplet> liste = new ArrayList<>();
-        for (int i = 0; i < nbSommets; i++) {
-            for (int j = i + 1; j < nbSommets; j++) {
-                if (adj[i][j] == 1) {
-                    liste.add(new Triplet(i, j, poidsA[i][j]));
-                }
-            }
-        }
-        return liste;
+
+    public void ajouterArete(int i, int j, double poids) {
+        this.adj[i][j] = 1;
+        this.adj[j][i] = 1;
+        this.poidsA[i][j] = poids;
+        this.poidsA[j][i] = poids;
     }
 
-    // méthode pour retourner une liste des arêtes triées par poids.
-    public List<Triplet> aretesTriees(boolean croissant) {
-        List<Triplet> liste = listeAretes();
-        if (croissant) {
-            Collections.sort(liste);
-        } else {
-            Collections.sort(liste, Collections.reverseOrder());
-        }
-        return liste;
+    public void ajusterPoids(int i, int j, double poids) {
+        this.poidsA[i][j] = poids;
+        this.poidsA[j][i] = poids;
     }
 
-    // Méthode pour vérifier si le graphe est connexe
-    public boolean estConnexe() {
-        ArrayList<Integer> resultat = parcoursLargeur(0); // On commence par le sommet 0
-        return resultat.size() == nbSommets; // Si tous les sommets sont atteints, le graphe est connexe
+    public void retirerArete(int i, int j) {
+        this.adj[i][j] = 0;
+        this.adj[j][i] = 0;
+        this.poidsA[i][j] = null;
+        this.poidsA[j][i] = null;
     }
 
     public boolean voisins(int i, int j) {
         return adj[i][j] == 1;
     }
 
-    // Ajouter une arête non pondérée
-    public void ajouterArete(int i, int j) {
-        if (i >= 0 && i <= nbSommets && j >= 0 && j <= nbSommets) {
-            this.adj[i][j] = 1;
-            this.adj[j][i] = 1;
-        }
+        // Méthode toString pour obtenir une représentation en chaîne de caractères du
+    // graphe
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Graphe{\n");
+        sb.append("nbSommets=").append(nbSommets).append(",\n");
+        sb.append("adj=").append(Arrays.deepToString(adj)).append(",\n");
+        sb.append("poidsA=").append(Arrays.deepToString(poidsA)).append(",\n");
+        sb.append("nomSommets=").append(nomSommets).append("\n");
+        sb.append('}');
+        return sb.toString();
     }
 
-    // Méthode pour ajouter une arête avec un poids
-    public void ajouterArete(int i, int j, double poids) {
-        if (i >= 0 && i < nbSommets && j >= 0 && j < nbSommets && i != j) {
-            adj[i][j] = 1;
-            adj[j][i] = 1;
-            poidsA[i][j] = poids;
-            poidsA[j][i] = poids;
-        }
-    }
-
-    public void retirerArete(int i, int j) {
-        if (i >= 0 && i < nbSommets && j >= 0 && j < nbSommets) {
-            adj[i][j] = 0;
-            adj[j][i] = 0;
-            if (poidsA != null) {
-                poidsA[i][j] = 0.0;
-                poidsA[j][i] = 0.0;
-            }
-        } else {
-            // Ignorer silencieusement les demandes invalides
-        }
-    }
-
-    // Méthode pour ajuster le poids d'une arête existante
-    public void ajusterPoids(int i, int j) {
-        if (adj[i][j] == 1 && poidsA[i][j] != null) {
-            poidsA[i][j] *= 1.1; // en supposant qu'on veut augmenter le poids de 10%
-            poidsA[j][i] *= 1.1; // en supposant qu'on veut augmenter le poids de 10%
-        }
-
-    }
-
-    // Parcours en largeur
     public ArrayList<Integer> parcoursLargeur(int debut) {
         // Initialisation
         boolean[] visite = new boolean[this.nbSommets];
@@ -198,135 +167,110 @@ public class Graphe implements Cloneable {
         return resultat;
     }
 
-    public ArrayList<Integer> parcoursProfondeur(int debut) {
-        ArrayList<Integer> visiteProfondeur = new ArrayList<>();
-        boolean[] visite = new boolean[nbSommets];
-        ArrayList<Integer> pile = new ArrayList<>();
-        pile.add(debut);
-        while (!pile.isEmpty()) {
-            int sommet = pile.remove(pile.size() - 1);
-            if ((!visite[sommet])) {
-                visiteProfondeur.add(sommet);
-                visite[sommet] = true;
-                for (int voisin = 0; voisin < nbSommets; voisin++) {
-                    if (voisins(sommet, voisin) && !visite[voisin]) {
-                        pile.add(voisin);
+
+    public ArrayList<Integer> parcoursProfondeur(int debut, boolean[] visited, ArrayList<Integer> order) {
+        Stack<Integer> stack = new Stack<>();
+        stack.push(debut);
+
+        while (!stack.isEmpty()) {
+            int current = stack.pop();
+            if (!visited[current]) {
+                order.add(current);
+                visited[current] = true;
+
+                List<Triplet> neighbors = getNeighbors(current);
+                Collections.sort(neighbors);
+                for (Triplet neighbor : neighbors) {
+                    if (!visited[neighbor.getC2()]) {
+                        stack.push(neighbor.getC2());
                     }
                 }
             }
-
         }
-        return visiteProfondeur;
+        return order;
     }
 
-    // Algorithme de Kruskal pour trouver l'arbre couvrant minimal
+
+    
+    // Effectue un parcours en profondeur (DFS) à partir du sommet courant dans le
+    // graphe donné
+    private void dfs(int debut, int current, Graphe graphe, boolean[] visited, ArrayList<Integer> order) {
+        // Marque le sommet courant comme visité
+        visited[current] = true;
+
+        // Ajoute le sommet courant à la liste d'ordre des visites
+        order.add(current);
+
+        // Parcourt tous les sommets du graphe
+        for (int i = 0; i < nbSommets; i++) {
+            // Si un sommet adjacent non visité est trouvé, lance un DFS récursif sur ce
+            // sommet
+            if (graphe.voisins(current, i) && !visited[i]) {
+                dfs(debut, i, graphe, visited, order);
+            }
+        }
+
+        // Si le sommet courant n'est pas le sommet de départ et est connecté au sommet
+        // de départ, ajoute le sommet de départ à la liste d'ordre
+        if (current != debut && graphe.voisins(current, debut)) {
+            order.add(debut);
+        }
+    }
+
+    // Vérifie si le graphe est connexe
+    public boolean estConnexe() {
+        ArrayList<Integer> resultat = parcoursLargeur(0); // On commence par le sommet 0
+        return resultat.size() == nbSommets; // Si tous les sommets sont atteints, le graphe est connexe
+    }
+
+    // Retourne la liste des arêtes du graphe
+    public List<Triplet> listeAretes() {
+        List<Triplet> aretes = new ArrayList<>();
+        for (int i = 0; i < nbSommets; i++) {
+            for (int j = i + 1; j < nbSommets; j++) {
+                if (this.adj[i][j] == 1) {
+                    aretes.add(new Triplet(i, j, this.poidsA[i][j]));
+                }
+            }
+        }
+        return aretes;
+    }
+
+    public List<Triplet> aretesTriees(boolean croissant) {
+        List<Triplet> aretes = listeAretes();
+        Collections.sort(aretes);
+        if (!croissant) {
+            Collections.reverse(aretes);
+        }
+        return aretes;
+    }
+
     public Graphe kruskalInverse() {
-        Graphe T = (Graphe) this.clone();
-        List<Triplet> aretes = T.aretesTriees(true);
-        int sommet1 = 0;
-        int sommet2 = 0;
-        double poids = 0;
-        for (Triplet arete : aretes) {
-            sommet1 = arete.getC1();
-            sommet2 = arete.getC2();
-            poids = arete.getPoids();
-            T.retirerArete(sommet1, sommet2);
-            if (!T.estConnexe()) {
-                T.ajouterArete(sommet1, sommet2, poids);
+        Graphe mst = (Graphe) this.clone();
+        List<Triplet> edges = listeAretes();
+        Collections.sort(edges, Collections.reverseOrder());
+
+        for (Triplet edge : edges) {
+            mst.retirerArete(edge.getC1(), edge.getC2());
+            if (!mst.estConnexe()) {
+                mst.ajouterArete(edge.getC1(), edge.getC2(), edge.getPoids());
             }
         }
-        return T;
-    }
-
-    // tsp pour avoir un cycle hamiltonien a la fin
-    public ArrayList<Integer> tsp(int debut) {
-        Graphe T = this.kruskalInverse();
-        ArrayList<Integer> parcours = T.parcoursProfondeur(debut);
-        ArrayList<Integer> res = new ArrayList<>();
-        for (int sommet : parcours) {
-            if (!res.contains(sommet)) {
-                res.add(sommet);
-            }
-        }
-        return res;
-    }
-
-    @Override
-    protected Object clone() {
-        try {
-            Graphe clone = (Graphe) super.clone();
-            clone.adj = new Integer[nbSommets][];
-            clone.poidsA = new Double[nbSommets][];
-            for (int i = 0; i < nbSommets; i++) {
-                clone.adj[i] = adj[i].clone();
-                clone.poidsA[i] = poidsA[i].clone();
-            }
-            clone.nomSommets = new ArrayList<>(nomSommets);
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
-
-    // Méthode toString pour obtenir une représentation en chaîne de caractères du
-    // graphe
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Graphe{\n");
-        sb.append("nbSommets=").append(nbSommets).append(",\n");
-        sb.append("adj=").append(Arrays.deepToString(adj)).append(",\n");
-        sb.append("poidsA=").append(Arrays.deepToString(poidsA)).append(",\n");
-        sb.append("nomSommets=").append(nomSommets).append("\n");
-        sb.append('}');
-        return sb.toString();
-    }
-
-    // Getters
-    public int getNbSommets() {
-        return nbSommets;
-    }
-
-    public Integer[][] getAdj() {
-        return adj;
-    }
-
-    public Double[][] getPoidsA() {
-        return poidsA;
-    }
-
-    public ArrayList<Integer> getNomSommets() {
-        return nomSommets;
-    }
-
-    // Setters
-    public void setNbSommets(int nbSommets) {
-        this.nbSommets = nbSommets;
-    }
-
-    public void setAdj(Integer[][] adj) {
-        this.adj = adj;
-    }
-
-    public void setPoidsA(Double[][] poidsA) {
-        this.poidsA = poidsA;
-    }
-
-    public void setNomSommets(ArrayList<Integer> nomSommets) {
-        this.nomSommets = nomSommets;
+        return mst;
     }
 
     public Graphe kruskal() {
-        // Liste des arêtes triées par poids croissant
-        List<Triplet> edges = aretesTriees(true); // Utilise la méthode aretesTriees pour trier les arêtes
-
-        // Créer une structure UnionFind pour gérer les composantes connexes
-        UnionFind uf = new UnionFind(nbSommets);
-
-        // Créer un nouveau graphe pour stocker l'arbre couvrant minimal
+        // Étape 1 : Initialiser un graphe T avec le même nombre de sommets et aucune
+        // arête
         Graphe arbreCouvrantMin = new Graphe(nbSommets);
 
-        // Parcourir les arêtes triées
+        // Étape 2 : Trier les arêtes du graphe courant par poids croissant
+        List<Triplet> edges = aretesTriees(true);
+
+        // Étape 3 : Initialiser la structure Union-Find pour la détection des cycles
+        UnionFind uf = new UnionFind(nbSommets);
+
+        // Étape 4 : Parcourir les arêtes triées
         for (Triplet edge : edges) {
             int u = edge.getC1();
             int v = edge.getC2();
@@ -341,5 +285,42 @@ public class Graphe implements Cloneable {
 
         return arbreCouvrantMin;
     }
+
+    public Double[][] getPoidsA() {
+        return poidsA;
+    }
+
+    
+
+    public ArrayList<Integer> tsp(int debut) {
+        Graphe mst = kruskalInverse();
+
+        ArrayList<Integer> order = new ArrayList<>();
+        boolean[] visited = new boolean[nbSommets];
+
+        dfs(debut, debut, mst, visited, order);
+
+        order.add(debut);
+
+        return order;
+    }
+
+    
+    // Retourne la liste des voisins d'un sommet donné
+    private List<Triplet> getNeighbors(int sommet) {
+        List<Triplet> neighbors = new ArrayList<>();
+        for (int i = 0; i < nbSommets; i++) {
+            if (voisins(sommet, i)) {
+                neighbors.add(new Triplet(sommet, i, poidsA[sommet][i]));
+            }
+        }
+        return neighbors;
+    }
+
+    public int getNbSommets() {
+        return nbSommets;
+    }
+
+   
 
 }

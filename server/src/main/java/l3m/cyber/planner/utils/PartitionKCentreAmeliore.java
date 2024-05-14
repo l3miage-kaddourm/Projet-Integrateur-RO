@@ -1,14 +1,18 @@
 package l3m.cyber.planner.utils;
 
-public class PartitionKCentre extends Partition {
+import java.util.ArrayList;
 
-    public PartitionKCentre(int n, int k) {
+public class PartitionKCentreAmeliore extends Partition {
+
+    private int[] casernes;
+
+    public PartitionKCentreAmeliore(int n, int k) {
         super(n, k);
     }
 
     @Override
     public void partitionne(Double[][] distances) {
-        int[] casernes = new int[k];
+        casernes = new int[k];
         casernes[0] = elemSpecial;
         int[] caserneRef = new int[nbElem];
         double[] distanceMax = new double[nbElem];
@@ -57,6 +61,29 @@ public class PartitionKCentre extends Partition {
     private void distribuerElements(int[] caserneRef) {
         for (int i = 1; i < nbElem; i++) {
             parties.get(caserneRef[i]).add(elems.get(i));
+        }
+    }
+
+    public void ameliorerPartition(Double[][] distances) {
+        for (int i = 0; i < k; i++) {
+            ArrayList<Integer> partie = parties.get(i);
+            for (int j = 1; j < partie.size(); j++) {
+                int elem = partie.get(j);
+                double minDistance = Double.MAX_VALUE;
+                int meilleureCaserne = i;
+                for (int m = 0; m < k; m++) {
+                    double distance = distances[casernes[m]][elem];
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        meilleureCaserne = m;
+                    }
+                }
+                if (meilleureCaserne != i) {
+                    partie.remove(j);
+                    parties.get(meilleureCaserne).add(elem);
+                    j--;
+                }
+            }
         }
     }
 

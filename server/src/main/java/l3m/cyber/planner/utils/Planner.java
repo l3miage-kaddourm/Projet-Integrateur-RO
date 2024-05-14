@@ -25,10 +25,6 @@ public class Planner {
         this.debut = debut;
     }
 
-    public Planner() {
-        this(null, 0, 0);
-    }
-
     public void divise() {
         this.p = new PartitionKCentre(distances.length, k);
         p.partitionne(distances);
@@ -36,21 +32,19 @@ public class Planner {
         for (int i = 0; i < k; i++) {
             tournees.add(p.getPartie(i));
         }
+        calculeTournees();
         calculeLongTournees();
 
     }
 
-    public void calculeTournee() {
-        for (int i = 0; i < tournees.size(); i++) {
-            ArrayList<Integer> listElem = tournees.get(i);
-            ArrayList<Integer> tournee = calculeUneTournee(listElem);
-            tournees.set(i, tournee);
-        }
+
+    public ArrayList<ArrayList<Integer>> getTournees() {
+        return tournees;
     }
 
-    public ArrayList<Integer> calculeUneTournee(ArrayList<Integer> subset) {
-        Graphe mst = new Graphe(getSousMatrice(subset), subset);
-        return mst.tsp(debut); // Utilise l'algorithme TSP pour optimiser la tournée à partir du MST
+
+    public ArrayList<Double> getLongTournees() {
+        return longTournees;
     }
 
     public Double[][] getSousMatrice(List<Integer> selec) {
@@ -63,6 +57,33 @@ public class Planner {
         }
         return sousMatrice;
     }
+
+
+    public ArrayList<Integer> calculeUneTournee(ArrayList<Integer> selec) {
+        Double[][] subMatrix = getSousMatrice(selec);
+        Graphe graphe = new Graphe(subMatrix, selec); // Crée un sous-graphe
+        ArrayList<Integer> result = new ArrayList<>();
+        result.add(debut); // Ajouter le dépôt au début de la tournée
+        ArrayList<Integer> tspOrder = graphe.tsp(debut);
+        for (Integer vertex : tspOrder) {
+            if (vertex != debut) {
+                result.add(selec.get(vertex)); // Ajouter les sommets sélectionnés à la tournée
+            }
+        }
+
+        return result;
+    }
+
+    public void calculeTournees() {
+        for (int i = 0; i < tournees.size(); i++) {
+            ArrayList<Integer> listElem = tournees.get(i);
+            ArrayList<Integer> tournee = calculeUneTournee(listElem);
+            tournees.set(i, tournee);
+        }
+    }
+
+
+
 
     public void calculeLongTournees() {
         longTournees = new ArrayList<Double>();
@@ -77,17 +98,6 @@ public class Planner {
 
     }
 
-    public ArrayList<ArrayList<Integer>> getTournees() {
-        return tournees;
-    }
-
-    public ArrayList<Double> getLongTournees() {
-        return longTournees;
-    }
-
-    public PlannerResult result() {
-        return new PlannerResult(tournees, longTournees);
-    }
 
     @Override
     public String toString() {
@@ -100,5 +110,11 @@ public class Planner {
                 ", longTournees=" + longTournees +
                 '}';
     }
+
+
+    public PlannerResult result() {
+        return new PlannerResult(tournees, longTournees);
+    }
+
 
 }

@@ -1,7 +1,6 @@
 package l3m.cyber.planner.utils;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public abstract class Partition {
     protected int nbElem;
@@ -48,7 +47,11 @@ public abstract class Partition {
     public abstract void partitionne(Double[][] distances);
 
     public ArrayList<ArrayList<Integer>> getParties() {
-        return parties;
+        return this.parties;
+    }
+
+    public ArrayList<Integer> getPartie(int i) {
+        return parties.get(i);
     }
 
     @Override
@@ -57,7 +60,4 @@ public abstract class Partition {
                 + elems + ", parties = " + parties + " }";
     }
 
-    public ArrayList<Integer> getPartie(int i) {
-        return parties.get(i);
-    }
 }

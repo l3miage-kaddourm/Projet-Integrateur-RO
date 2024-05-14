@@ -1,5 +1,4 @@
 package l3m.cyber.planner.utils;
-import java.util.Objects;
 
 // Classe Triplet pour représenter une arête dans le graphe
 
@@ -28,15 +27,9 @@ public class Triplet implements Comparable<Triplet> {
         return c3;
     }
 
-   
-    public void setC3(double poids) {
-        this.c3 = poids;
-    }
-
-    // Méthode compareTo pour comparer deux Triplets basée sur le poids
     @Override
-    public int compareTo(Triplet autre) {
-        return Double.compare(this.c3, autre.c3);
+    public int compareTo(Triplet t) {
+        return Double.compare(this.c3, t.getPoids());
     }
 
     // Représentation en chaîne de caractères de Triplet pour le débogage
@@ -58,8 +51,4 @@ public class Triplet implements Comparable<Triplet> {
         return Double.compare(this.c3, other.c3) == 0;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(c1, c2, c3);
-    }
 }
