@@ -168,28 +168,35 @@ public class Graphe implements Cloneable {
     }
 
 
-    public ArrayList<Integer> parcoursProfondeur(int debut, boolean[] visited, ArrayList<Integer> order) {
+    public ArrayList<Integer> parcoursProfondeur(int debut) {
+        boolean[] visited = new boolean[nbSommets];
+        ArrayList<Integer> order = new ArrayList<>();
         Stack<Integer> stack = new Stack<>();
+
         stack.push(debut);
 
         while (!stack.isEmpty()) {
             int current = stack.pop();
-            if (!visited[current]) {
-                order.add(current);
-                visited[current] = true;
 
+            if (!visited[current]) {
+                visited[current] = true;
+                order.add(current);
+
+                // Parcourt tous les sommets du graphe et les ajoute à la pile
+                // Trier les voisins par poids pour assurer un ordre déterministe
                 List<Triplet> neighbors = getNeighbors(current);
                 Collections.sort(neighbors);
-                for (Triplet neighbor : neighbors) {
-                    if (!visited[neighbor.getC2()]) {
-                        stack.push(neighbor.getC2());
+                for (int i = neighbors.size() - 1; i >= 0; i--) {
+                    int neighbor = neighbors.get(i).getC2();
+                    if (!visited[neighbor]) {
+                        stack.push(neighbor);
                     }
                 }
             }
         }
+
         return order;
     }
-
 
     
     // Effectue un parcours en profondeur (DFS) à partir du sommet courant dans le
@@ -228,7 +235,7 @@ public class Graphe implements Cloneable {
         List<Triplet> aretes = new ArrayList<>();
         for (int i = 0; i < nbSommets; i++) {
             for (int j = i + 1; j < nbSommets; j++) {
-                if (this.adj[i][j] == 1) {
+                if (voisins(i, j)) {
                     aretes.add(new Triplet(i, j, this.poidsA[i][j]));
                 }
             }
@@ -246,19 +253,17 @@ public class Graphe implements Cloneable {
     }
 
     public Graphe kruskalInverse() {
-        Graphe mst = (Graphe) this.clone();
-        List<Triplet> edges = listeAretes();
-        Collections.sort(edges, Collections.reverseOrder());
-
-        for (Triplet edge : edges) {
-            mst.retirerArete(edge.getC1(), edge.getC2());
-            if (!mst.estConnexe()) {
-                mst.ajouterArete(edge.getC1(), edge.getC2(), edge.getPoids());
+        Graphe g = (Graphe) this.clone();
+        List<Triplet> listeAretes = listeAretes();
+        Collections.sort(listeAretes, Collections.reverseOrder());
+        for (Triplet edge : listeAretes) {
+            g.retirerArete(edge.getC1(), edge.getC2());
+            if (!g.estConnexe()) {
+                g.ajouterArete(edge.getC1(), edge.getC2(), edge.getPoids());
             }
         }
-        return mst;
+        return g;
     }
-
     public Graphe kruskal() {
         // Étape 1 : Initialiser un graphe T avec le même nombre de sommets et aucune
         // arête

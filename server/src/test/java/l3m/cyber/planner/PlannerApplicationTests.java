@@ -1,5 +1,6 @@
 package l3m.cyber.planner;
 
+import l3m.cyber.planner.utils.Graphe;
 import l3m.cyber.planner.utils.PartitionKCentre;
 import l3m.cyber.planner.utils.PartitionKCentreAmeliore;
 import l3m.cyber.planner.utils.Planner;
@@ -93,6 +94,31 @@ public class PlannerApplicationTests {
             assertTrue(partition.contains(elemSpecial), "L'élément spécial doit être présent dans chaque partition");
         }
         System.out.println("PartitionKCentreAmeliore: " + partitions);
+    }
+
+    // test de parcours en profondeur
+    @Test
+    public void testParcoursProfondeur() {
+        Graphe graphe = new Graphe(distances, elems);
+        // Effectuer un parcours en profondeur à partir du sommet elemSpecial (0)
+        ArrayList<Integer> parcoursProfondeur = graphe.parcoursProfondeur(elemSpecial);
+
+        // Afficher le résultat du parcours en profondeur
+        System.out.println("Parcours en profondeur à partir du sommet " + elemSpecial + ": " + parcoursProfondeur);
+
+        // Vérifier que le résultat du parcours en profondeur est correct
+        // La vérification exacte dépendra de l'ordre des visites attendu
+        ArrayList<Integer> expectedOrder = new ArrayList<>();
+        expectedOrder.add(0);
+        expectedOrder.add(3);
+        expectedOrder.add(1);
+        expectedOrder.add(2);
+        expectedOrder.add(4);
+        expectedOrder.add(5);
+        expectedOrder.add(6);
+
+        assertEquals(expectedOrder, parcoursProfondeur,
+                "Le parcours en profondeur ne correspond pas à l'ordre attendu.");
     }
 
     @Test
